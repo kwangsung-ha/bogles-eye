@@ -18,6 +18,7 @@
 
 | Column | Description |
 | :--- | :--- |
+| company_name | 운용회사 |
 | fund_name | 펀드명 |
 | management_fees | 운용보수 |
 | sales_fees | 판매보수 |

@@ -83,13 +83,14 @@ async def scrape_fund_fees():
                         
                         if normalized_name not in seen_funds:
                             data = {
+                                "company_name": combined_texts[0], # 운용회사
                                 "fund_name": fund_name,
                                 "management_fees": combined_texts[5],
                                 "sales_fees": combined_texts[6],
                                 "custody_fees": combined_texts[7],
                                 "office_admin_fees": combined_texts[8],
                                 "other_expenses": combined_texts[10],
-                                "ter": combined_texts[9], # 총보수(연)
+                                "ter": combined_texts[9],
                                 "front_end_commission": combined_texts[11],
                                 "back_end_commission": combined_texts[12],
                                 "trading_fee_ratio": combined_texts[15]
