@@ -42,6 +42,7 @@ async def scrape_fund_fees():
             print(f"[{datetime.now()}] 검색 오류: {e}")
 
         rows_data = []
+        seen_funds = set() # 펀드명(공백제거) 중복 체크용
 
         async def extract(container):
             # 모든 행을 가져와서 Y 좌표(top)를 기준으로 그룹화 (테이블이 나뉜 경우 대비)
@@ -74,29 +75,29 @@ async def scrape_fund_fees():
                 
                 # 데이터 확인 및 매핑
                 if any("P500" in t for t in combined_texts):
-                    # 통합 텍스트 리스트 출력하여 인덱스 확인 (디버깅용)
-                    # print(f"통합 행 데이터: {combined_texts}")
-                    
                     # 인덱스 매핑 (데이터 분석 결과 기반)
                     if len(combined_texts) >= 16:
-                        data = {
-                            "fund_name": combined_texts[1],
-                            "management_fees": combined_texts[5],
-                            "sales_fees": combined_texts[6],
-                            "custody_fees": combined_texts[7],
-                            "office_admin_fees": combined_texts[8],
-                            "other_expenses": combined_texts[10],
-                            "ter": combined_texts[9], # 총보수(연)을 TER로 매핑 (근사값)
-                            "front_end_commission": combined_texts[11],
-                            "back_end_commission": combined_texts[12],
-                            "trading_fee_ratio": combined_texts[15]
-                        }
+                        fund_name = combined_texts[1]
+                        # 중복 체크 (공백 제거 후 비교)
+                        normalized_name = fund_name.replace(" ", "").replace("\u00a0", "")
                         
-                        rows_data.append(data)
-                        print(f"[{datetime.now()}] 수집: {data['fund_name']}")
-
-        await extract(page)
-        for f in page.frames: await extract(f)
+                        if normalized_name not in seen_funds:
+                            data = {
+                                "fund_name": fund_name,
+                                "management_fees": combined_texts[5],
+                                "sales_fees": combined_texts[6],
+                                "custody_fees": combined_texts[7],
+                                "office_admin_fees": combined_texts[8],
+                                "other_expenses": combined_texts[10],
+                                "ter": combined_texts[9], # 총보수(연)
+                                "front_end_commission": combined_texts[11],
+                                "back_end_commission": combined_texts[12],
+                                "trading_fee_ratio": combined_texts[15]
+                            }
+                            
+                            rows_data.append(data)
+                            seen_funds.add(normalized_name)
+                            print(f"[{datetime.now()}] 수집: {fund_name}")
 
         await extract(page)
         for f in page.frames: await extract(f)
