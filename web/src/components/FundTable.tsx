@@ -85,7 +85,7 @@ const columns = [
   }),
   // 기타비용 (단일 컬럼)
   columnHelper.accessor('other_expenses', {
-    header: (
+    header: () => (
       <>
         기타비용
         <br />
@@ -135,7 +135,7 @@ const columns = [
     header: '매매비용(%)',
     columns: [
       columnHelper.accessor('trading_fee_ratio', {
-        header: (
+        header: () => (
           <>
             매매.중개수수료
             <br />
