@@ -7,45 +7,36 @@
 
 ## Design
 
-### Architecture: Vercel + Supabase
-"무료 운영" 목표를 달성하기 위해 Vercel과 Supabase의 Free Tier를 조합합니다.
+### Architecture: Vercel + Supabase + Static CSV
+"무료 운영" 목표를 달성하고 DB 조회를 최소화하기 위해 **Hybrid Data Loading** 전략을 사용합니다.
 
 1.  **Hosting**: **Vercel** (Free).
-    - React/Next.js 프로젝트 배포에 최적화.
-    - 빠른 글로벌 CDN 제공.
 2.  **Database**: **Supabase** (Free).
     - PostgreSQL 기반의 BaaS.
-    - Github Actions에서 Python 스크립트로 데이터 적재 용이.
-    - 프론트엔드에서 `supabase-js` 클라이언트로 직접 조회 가능 (별도 백엔드 API 서버 불필요).
-3.  **Automation (ETL)**:
+    - 데이터의 원천(Source of Truth) 역할.
+3.  **Data Strategy (Hybrid)**:
+    - **Primary**: 정적 CSV 파일 조회 (`/data/fund_fees_YYYY-MM-DD.csv`). 비용 0원, 속도 빠름.
+    - **Fallback**: 파일이 없을 경우 Supabase DB 조회 (`select * from funds`). DB 부하 최소화.
+4.  **Automation (ETL)**:
     - **GitHub Actions**:
-        1.  Scraper 실행 (매일 정기).
-        2.  수집된 데이터를 Supabase DB에 Upsert (Insert/Update).
+        1.  Scraper 실행 -> DB Upsert.
+        2.  DB 데이터를 기반으로 최신 CSV 생성 및 Commit -> Vercel 배포 트리거.
 
 ### Tech Stack
-- **Framework**: React (Vite) - 가볍고 빠른 개발 환경.
-- **Language**: TypeScript - 유지보수성 확보.
-- **Styling**: Tailwind CSS - 빠르고 일관된 UI 디자인.
-- **Database Client**: `supabase-js` & `supabase-py` (Python 스크래퍼용).
-- **Visualization**: Recharts 또는 TanStack Table (데이터 그리드).
-
-### Folder Structure
-```
-/web
-  /src
-    /components
-    /lib (supabase client setup)
-    /hooks (useFundData)
-    /types
-    App.tsx
-```
+- **Framework**: React (Vite)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Data Parsing**: `papaparse` (CSV 처리)
+- **Database Client**: `supabase-js`
 
 ## Todo List
 - [x] **Project Setup**: `web/` 디렉토리에 React + Vite + TypeScript 프로젝트 생성.
 - [ ] **Infrastructure**: Supabase 프로젝트 생성 및 테이블 스키마 설계 (`funds` 테이블).
-- [ ] **Data Pipeline Update**: 기존 파이썬 스크래퍼에 Supabase 연동 로직 추가 (CSV 저장 방식 -> DB 저장 방식).
-- [x] **UI Scaffolding**: Tailwind CSS 설정 및 기본 레이아웃 (Header, Main, Footer) 구성.
-- [x] **Data Integration**: 프론트엔드에서 Supabase 데이터 조회 (`select *`) 구현. (Fallback with Mock Data implemented)
+- [ ] **Data Pipeline Update**: 파이썬 스크래퍼 수정 (DB 저장 + CSV 생성).
+- [x] **UI Scaffolding**: Tailwind CSS 설정 및 기본 레이아웃 구성.
+- [x] **Data Integration**:
+    - [x] 오늘 날짜 기준 CSV 파일 Fetch 시도.
+    - [x] 실패 시 Supabase DB Fallback 조회 구현.
 - [x] **Dashboard Implementation**: 펀드 비교 리스트/테이블 UI 구현.
 - [ ] **Deployment**: Vercel 배포 설정.
 
