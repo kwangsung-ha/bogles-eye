@@ -158,6 +158,35 @@ function App() {
             <FundTable data={funds} />
           </div>
         )}
+        <div className="mt-6 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-700 leading-relaxed">
+          <p>
+            실제투자자가부담하는보수·비용수준=TER(A+B)+판매수수료율(C)+매매·
+            중개수수료율(D)
+          </p>
+          <p className="mt-1">
+            - 총보수·비용비율(TER,Total Expense Ratio) = (보수합계 + 기타비용) ÷ 펀드순자산
+          </p>
+          <p className="mt-3">2008년 6월말 발표분부터 총비용비율 공시기준이 변경</p>
+          <p className="mt-1">- 기타비용에서 매매중개수수료분을 제외하고, 이를 별도 표기</p>
+          <p className="mt-1">
+            - 모자펀드 및 종류형 펀드의 경우 모펀드발생비용을 자펀드의 투자비율로 안분하여 적용
+          </p>
+          <p className="mt-3">본 자료는 공모펀드를 대상으로 하고 있습니다.</p>
+          <p className="mt-3">
+            운용개시일이 1년 미만인 경우 초기 자산 매입으로 인해 매매중개수수료율이 과다하게 발생할 수
+            있으니 이용에 참고하시기 바랍니다.
+          </p>
+          <p className="mt-3">
+            ※ 상기 내용은 월별자료이며, 제출사 에서 내용이 정정되어 재공시 하는 경우 내용이 변경 될 수
+            있습니다.
+          </p>
+          <p className="mt-3">
+            데이터 출처: 금융투자협회 전자공시서비스
+          </p>
+          <p className="mt-1">
+            본 자료는 참고용이며, 정보의 정확성 또는 완전성에 대해 어떠한 책임도 지지 않습니다.
+          </p>
+        </div>
       </main>
     </div>
   );
