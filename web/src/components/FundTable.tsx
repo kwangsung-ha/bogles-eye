@@ -15,15 +15,21 @@ const columnHelper = createColumnHelper<Fund>();
 const formatPct = (val: number) => (val != null ? `${val.toFixed(4)}%` : '-');
 
 const columns = [
-  columnHelper.accessor('company_name', {
-    header: '운용사',
-    cell: (info) => <span className="text-gray-600">{info.getValue()}</span>,
+  // Group: 기본정보
+  columnHelper.group({
+    header: '기본정보',
+    columns: [
+      columnHelper.accessor('company_name', {
+        header: '운용사',
+        cell: (info) => <span className="text-gray-600">{info.getValue()}</span>,
+      }),
+      columnHelper.accessor('fund_name', {
+        header: '펀드명',
+        cell: (info) => <span className="font-medium text-gray-900">{info.getValue()}</span>,
+      }),
+    ],
   }),
-  columnHelper.accessor('fund_name', {
-    header: '펀드명',
-    cell: (info) => <span className="font-medium text-gray-900">{info.getValue()}</span>,
-  }),
-  // A Group (Grouped under '보수율')
+  // Group: 보수율
   columnHelper.group({
     header: '보수율',
     columns: [
@@ -50,27 +56,37 @@ const columns = [
       }),
     ],
   }),
-  // B Group
-  columnHelper.accessor('other_expenses', {
-    header: '기타비용(B)',
-    cell: (info) => formatPct(info.getValue()),
+  // Group: 기타비용
+  columnHelper.group({
+    header: '기타비용',
+    columns: [
+      columnHelper.accessor('other_expenses', {
+        header: '기타비용(B)',
+        cell: (info) => formatPct(info.getValue()),
+      }),
+    ],
   }),
-  // A+B
-  columnHelper.accessor('ter', {
-    header: ({ column }) => {
-      return (
-        <button
-          className="flex items-center justify-center gap-1 hover:text-gray-900 font-bold w-full"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          TER(A+B)
-          <ArrowUpDown className="h-4 w-4" />
-        </button>
-      )
-    },
-    cell: (info) => <span className="text-blue-600 font-medium">{formatPct(info.getValue())}</span>,
+  // Group: TER
+  columnHelper.group({
+    header: 'TER',
+    columns: [
+      columnHelper.accessor('ter', {
+        header: ({ column }) => {
+          return (
+            <button
+              className="flex items-center justify-center gap-1 hover:text-gray-900 font-bold w-full"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              TER(A+B)
+              <ArrowUpDown className="h-4 w-4" />
+            </button>
+          )
+        },
+        cell: (info) => <span className="text-blue-600 font-medium">{formatPct(info.getValue())}</span>,
+      }),
+    ],
   }),
-  // C Group
+  // Group: 판매수수료
   columnHelper.group({
     header: '판매수수료(%)(C)',
     columns: [
@@ -84,30 +100,40 @@ const columns = [
       }),
     ],
   }),
-  // D Group
-  columnHelper.accessor('trading_fee_ratio', {
-    header: '매매.중개수수료(D)',
-    cell: (info) => formatPct(info.getValue()),
+  // Group: 매매비용
+  columnHelper.group({
+    header: '매매비용',
+    columns: [
+      columnHelper.accessor('trading_fee_ratio', {
+        header: '매매.중개수수료(D)',
+        cell: (info) => formatPct(info.getValue()),
+      }),
+    ],
   }),
-  // Final Total
-  columnHelper.accessor((row) => {
-    // TER usually includes A + B.
-    // Total Cost = TER + FrontEnd + BackEnd + TradingFee
-    return row.ter + row.front_end_commission + row.back_end_commission + row.trading_fee_ratio;
-  }, {
-    id: 'real_total_cost',
-    header: ({ column }) => {
-      return (
-        <button
-          className="flex items-center justify-center gap-1 hover:text-gray-900 font-extrabold text-blue-700 w-full"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          총비용(A+B+C+D)
-          <ArrowUpDown className="h-4 w-4" />
-        </button>
-      )
-    },
-    cell: (info) => <span className="font-extrabold text-blue-700">{formatPct(info.getValue())}</span>,
+  // Group: 최종비용
+  columnHelper.group({
+    header: '최종비용',
+    columns: [
+      columnHelper.accessor((row) => {
+        // TER usually includes A + B.
+        // Total Cost = TER + FrontEnd + BackEnd + TradingFee
+        return row.ter + row.front_end_commission + row.back_end_commission + row.trading_fee_ratio;
+      }, {
+        id: 'real_total_cost',
+        header: ({ column }) => {
+          return (
+            <button
+              className="flex items-center justify-center gap-1 hover:text-gray-900 font-extrabold text-blue-700 w-full"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              총비용(A+B+C+D)
+              <ArrowUpDown className="h-4 w-4" />
+            </button>
+          )
+        },
+        cell: (info) => <span className="font-extrabold text-blue-700">{formatPct(info.getValue())}</span>,
+      }),
+    ],
   }),
 ];
 

@@ -38,7 +38,8 @@
     - [x] 오늘 날짜 기준 CSV 파일 Fetch 시도.
     - [x] 실패 시 Supabase DB Fallback 조회 구현.
 - [x] **Dashboard Implementation**: 펀드 비교 리스트/테이블 UI 구현.
+    - [x] 테이블 컬럼 분리: '기타 및 TER' 그룹 해제.
 - [ ] **Deployment**: Vercel 배포 설정.
 
 ## Dev Log
-- **2025-12-19**: 문서 생성. Vercel + Supabase 아키텍처 확정.
+- **2025-12-19**: 문서 생성. Vercel + Supabase 아키텍처 확정. 테이블 컬럼 수정 요청 ('기타 및 TER' 분리).
