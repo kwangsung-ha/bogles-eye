@@ -60,7 +60,7 @@ const columns = [
     header: ({ column }) => {
       return (
         <button
-          className="flex items-center gap-1 hover:text-gray-900 font-bold"
+          className="flex items-center justify-center gap-1 hover:text-gray-900 font-bold w-full"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           TER(A+B)
@@ -71,17 +71,22 @@ const columns = [
     cell: (info) => <span className="text-blue-600 font-medium">{formatPct(info.getValue())}</span>,
   }),
   // C Group
-  columnHelper.accessor('front_end_commission', {
-    header: '선취(C)',
-    cell: (info) => formatPct(info.getValue()),
-  }),
-  columnHelper.accessor('back_end_commission', {
-    header: '후취(C)',
-    cell: (info) => formatPct(info.getValue()),
+  columnHelper.group({
+    header: '판매수수료(%)(C)',
+    columns: [
+      columnHelper.accessor('front_end_commission', {
+        header: '선취',
+        cell: (info) => formatPct(info.getValue()),
+      }),
+      columnHelper.accessor('back_end_commission', {
+        header: '후취',
+        cell: (info) => formatPct(info.getValue()),
+      }),
+    ],
   }),
   // D Group
   columnHelper.accessor('trading_fee_ratio', {
-    header: '매매(D)',
+    header: '매매.중개수수료(D)',
     cell: (info) => formatPct(info.getValue()),
   }),
   // Final Total
@@ -94,7 +99,7 @@ const columns = [
     header: ({ column }) => {
       return (
         <button
-          className="flex items-center gap-1 hover:text-gray-900 font-extrabold text-blue-700"
+          className="flex items-center justify-center gap-1 hover:text-gray-900 font-extrabold text-blue-700 w-full"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           총비용(A+B+C+D)
@@ -128,14 +133,15 @@ export function FundTable({ data }: FundTableProps) {
 
   return (
     <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-      <table className="min-w-full divide-y divide-gray-300">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-gray-300 border border-gray-200">
+        <thead className="bg-gray-100">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900 whitespace-nowrap"
+                  colSpan={header.colSpan}
+                  className="px-3 py-3.5 text-center text-xs font-semibold text-gray-900 whitespace-nowrap border border-gray-300"
                 >
                   {header.isPlaceholder
                     ? null
@@ -154,7 +160,7 @@ export function FundTable({ data }: FundTableProps) {
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
-                  className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
+                  className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 border-r border-gray-100 last:border-r-0 text-center"
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
