@@ -75,7 +75,7 @@ async def scrape_fund_fees():
                 
                 # 데이터 확인 및 매핑
                 if any("P500" in t for t in combined_texts):
-                    # 인덱스 매핑 (데이터 분석 결과 기반)
+                    # 인덱스 매핑 (데이터 분석 결과 기반 수정)
                     if len(combined_texts) >= 16:
                         fund_name = combined_texts[1]
                         # 중복 체크 (공백 제거 후 비교)
@@ -89,11 +89,11 @@ async def scrape_fund_fees():
                                 "sales_fees": combined_texts[6],
                                 "custody_fees": combined_texts[7],
                                 "office_admin_fees": combined_texts[8],
-                                "other_expenses": combined_texts[10],
-                                "ter": combined_texts[9],
-                                "front_end_commission": combined_texts[11],
-                                "back_end_commission": combined_texts[12],
-                                "trading_fee_ratio": combined_texts[15]
+                                "other_expenses": combined_texts[11], # 기타비용(B) (index 10은 유형평균 추정)
+                                "ter": combined_texts[12],            # 총보수비용(A+B) (index 9는 보수합계 A)
+                                "front_end_commission": combined_texts[13], # 선취
+                                "back_end_commission": combined_texts[14],  # 후취
+                                "trading_fee_ratio": combined_texts[15]     # 매매
                             }
                             
                             rows_data.append(data)
