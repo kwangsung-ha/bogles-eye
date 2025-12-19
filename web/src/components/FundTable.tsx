@@ -12,36 +12,92 @@ import { ArrowUpDown } from 'lucide-react';
 
 const columnHelper = createColumnHelper<Fund>();
 
+const formatPct = (val: number) => (val != null ? `${val.toFixed(4)}%` : '-');
+
 const columns = [
   columnHelper.accessor('company_name', {
-    header: 'Company',
-    cell: (info) => info.getValue(),
+    header: '운용사',
+    cell: (info) => <span className="text-gray-600">{info.getValue()}</span>,
   }),
   columnHelper.accessor('fund_name', {
-    header: 'Fund Name',
+    header: '펀드명',
     cell: (info) => <span className="font-medium text-gray-900">{info.getValue()}</span>,
   }),
+  // A Group
+  columnHelper.accessor('management_fees', {
+    header: '운용',
+    cell: (info) => formatPct(info.getValue()),
+  }),
+  columnHelper.accessor('sales_fees', {
+    header: '판매',
+    cell: (info) => formatPct(info.getValue()),
+  }),
+  columnHelper.accessor('custody_fees', {
+    header: '수탁',
+    cell: (info) => formatPct(info.getValue()),
+  }),
+  columnHelper.accessor('office_admin_fees', {
+    header: '사무',
+    cell: (info) => formatPct(info.getValue()),
+  }),
+  columnHelper.accessor((row) => row.management_fees + row.sales_fees + row.custody_fees + row.office_admin_fees, {
+    id: 'total_fees_a',
+    header: '합계(A)',
+    cell: (info) => <span className="font-semibold">{formatPct(info.getValue())}</span>,
+  }),
+  // B Group
+  columnHelper.accessor('other_expenses', {
+    header: '기타(B)',
+    cell: (info) => formatPct(info.getValue()),
+  }),
+  // A+B
   columnHelper.accessor('ter', {
     header: ({ column }) => {
       return (
         <button
-          className="flex items-center gap-1 hover:text-gray-900"
+          className="flex items-center gap-1 hover:text-gray-900 font-bold"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          TER (%)
+          TER(A+B)
           <ArrowUpDown className="h-4 w-4" />
         </button>
       )
     },
-    cell: (info) => <span className="font-bold text-blue-600">{info.getValue()}%</span>,
+    cell: (info) => <span className="text-blue-600 font-medium">{formatPct(info.getValue())}</span>,
   }),
-  columnHelper.accessor('management_fees', {
-    header: 'Mgmt Fee',
-    cell: (info) => `${info.getValue()}%`,
+  // C Group
+  columnHelper.accessor('front_end_commission', {
+    header: '선취(C)',
+    cell: (info) => formatPct(info.getValue()),
   }),
+  columnHelper.accessor('back_end_commission', {
+    header: '후취(C)',
+    cell: (info) => formatPct(info.getValue()),
+  }),
+  // D Group
   columnHelper.accessor('trading_fee_ratio', {
-    header: 'Trading Fee',
-    cell: (info) => `${info.getValue()}%`,
+    header: '매매(D)',
+    cell: (info) => formatPct(info.getValue()),
+  }),
+  // Final Total
+  columnHelper.accessor((row) => {
+    // TER usually includes A + B.
+    // Total Cost = TER + FrontEnd + BackEnd + TradingFee
+    return row.ter + row.front_end_commission + row.back_end_commission + row.trading_fee_ratio;
+  }, {
+    id: 'real_total_cost',
+    header: ({ column }) => {
+      return (
+        <button
+          className="flex items-center gap-1 hover:text-gray-900 font-extrabold text-blue-700"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          총비용(A+B+C+D)
+          <ArrowUpDown className="h-4 w-4" />
+        </button>
+      )
+    },
+    cell: (info) => <span className="font-extrabold text-blue-700">{formatPct(info.getValue())}</span>,
   }),
 ];
 
@@ -50,7 +106,9 @@ interface FundTableProps {
 }
 
 export function FundTable({ data }: FundTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'real_total_cost', desc: false } // Default sort by lowest total cost
+  ]);
 
   const table = useReactTable({
     data,
@@ -72,7 +130,7 @@ export function FundTable({ data }: FundTableProps) {
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
+                  className="px-3 py-3.5 text-left text-xs font-semibold text-gray-900 whitespace-nowrap"
                 >
                   {header.isPlaceholder
                     ? null
@@ -87,7 +145,7 @@ export function FundTable({ data }: FundTableProps) {
         </thead>
         <tbody className="divide-y divide-gray-200 bg-white">
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="hover:bg-gray-50">
+            <tr key={row.id} className="hover:bg-gray-50 transition-colors">
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
