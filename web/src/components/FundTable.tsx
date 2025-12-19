@@ -23,31 +23,36 @@ const columns = [
     header: '펀드명',
     cell: (info) => <span className="font-medium text-gray-900">{info.getValue()}</span>,
   }),
-  // A Group
-  columnHelper.accessor('management_fees', {
-    header: '운용',
-    cell: (info) => formatPct(info.getValue()),
-  }),
-  columnHelper.accessor('sales_fees', {
-    header: '판매',
-    cell: (info) => formatPct(info.getValue()),
-  }),
-  columnHelper.accessor('custody_fees', {
-    header: '수탁',
-    cell: (info) => formatPct(info.getValue()),
-  }),
-  columnHelper.accessor('office_admin_fees', {
-    header: '사무',
-    cell: (info) => formatPct(info.getValue()),
-  }),
-  columnHelper.accessor((row) => row.management_fees + row.sales_fees + row.custody_fees + row.office_admin_fees, {
-    id: 'total_fees_a',
-    header: '합계(A)',
-    cell: (info) => <span className="font-semibold">{formatPct(info.getValue())}</span>,
+  // A Group (Grouped under '보수율')
+  columnHelper.group({
+    header: '보수율',
+    columns: [
+      columnHelper.accessor('management_fees', {
+        header: '운용',
+        cell: (info) => formatPct(info.getValue()),
+      }),
+      columnHelper.accessor('sales_fees', {
+        header: '판매',
+        cell: (info) => formatPct(info.getValue()),
+      }),
+      columnHelper.accessor('custody_fees', {
+        header: '수탁',
+        cell: (info) => formatPct(info.getValue()),
+      }),
+      columnHelper.accessor('office_admin_fees', {
+        header: '사무',
+        cell: (info) => formatPct(info.getValue()),
+      }),
+      columnHelper.accessor((row) => row.management_fees + row.sales_fees + row.custody_fees + row.office_admin_fees, {
+        id: 'total_fees_a',
+        header: '합계(A)',
+        cell: (info) => <span className="font-semibold">{formatPct(info.getValue())}</span>,
+      }),
+    ],
   }),
   // B Group
   columnHelper.accessor('other_expenses', {
-    header: '기타(B)',
+    header: '기타비용(B)',
     cell: (info) => formatPct(info.getValue()),
   }),
   // A+B
