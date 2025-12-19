@@ -11,5 +11,6 @@ export interface Fund {
   front_end_commission: number;
   back_end_commission: number;
   trading_fee_ratio: number;
+  category?: string; // "S&P500" | "Nasdaq100"
   created_at?: string;
 }

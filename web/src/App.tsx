@@ -119,6 +119,17 @@ function App() {
     fetchData();
   }, []);
 
+  const sp500Funds = funds.filter(f => 
+    f.category === 'S&P500' || 
+    (!f.category && f.fund_name.toUpperCase().includes('S&P500')) ||
+    (!f.category && f.fund_name.includes('P500'))
+  );
+
+  const nasdaqFunds = funds.filter(f => 
+    f.category === 'Nasdaq100' || 
+    (!f.category && f.fund_name.includes('나스닥'))
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
       <Header />
@@ -143,7 +154,7 @@ function App() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-8">
             {error && (
               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                 <div className="flex">
@@ -155,7 +166,28 @@ function App() {
                 </div>
               </div>
             )}
-            <FundTable data={funds} />
+            
+            {sp500Funds.length > 0 && (
+              <section>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 px-1 border-l-4 border-blue-500 pl-2">
+                  S&P 500 ETFs
+                </h3>
+                <FundTable data={sp500Funds} />
+              </section>
+            )}
+
+            {nasdaqFunds.length > 0 && (
+              <section>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 px-1 border-l-4 border-purple-500 pl-2">
+                  Nasdaq 100 ETFs
+                </h3>
+                <FundTable data={nasdaqFunds} />
+              </section>
+            )}
+
+            {sp500Funds.length === 0 && nasdaqFunds.length === 0 && !loading && !error && (
+               <div className="text-center text-gray-500 py-10">No funds found.</div>
+            )}
           </div>
         )}
         <div className="mt-6 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-700 leading-relaxed">
