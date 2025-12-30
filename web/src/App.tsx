@@ -35,14 +35,6 @@ const MOCK_DATA: Fund[] = [
   }
 ];
 
-function getTodayString() {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 function App() {
   const [funds, setFunds] = useState<Fund[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,49 +43,73 @@ function App() {
 
   useEffect(() => {
     async function fetchData() {
-      const today = getTodayString();
-      const csvPath = `/data/fund_fees_${today}.csv`;
-      
-      console.log(`Attempting to fetch CSV from: ${csvPath}`);
+      // --- 1. Try to fetch most recent CSV ---
+      let csvLoaded = false;
+      for (let i = 0; i < 30; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+        const csvPath = `/data/fund_fees_${dateString}.csv`;
 
-      try {
-        // 1. Try fetching CSV
-        const response = await fetch(csvPath);
-        if (response.ok) {
-          const csvText = await response.text();
-          Papa.parse<Fund>(csvText, {
-            header: true,
-            dynamicTyping: true,
-            skipEmptyLines: true,
-            complete: (results) => {
-              if (results.data && results.data.length > 0) {
-                console.log("Successfully loaded from CSV");
-                setFunds(results.data);
-                setSource('csv');
-                setLoading(false);
-              } else {
-                throw new Error("CSV parsed but empty");
-              }
-            },
-            error: (err: Error) => {
-              throw err;
+        console.log(`[Attempt ${i + 1}/30] Fetching CSV from: ${csvPath}`);
+
+        try {
+          const response = await fetch(csvPath);
+          if (response.ok) {
+            // Check if response is HTML (Vite/SPA fallback for 404)
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("text/html")) {
+               console.warn(`Skipping ${csvPath} because it returned HTML (likely 404 fallback)`);
+               continue;
             }
-          });
-          return; // Exit if CSV load succeeds (handled in complete callback)
-        } else {
-          console.warn("CSV not found or fetch failed, falling back to DB.");
+
+            const csvText = await response.text();
+            
+            await new Promise<void>((resolve, reject) => {
+              Papa.parse<Fund>(csvText, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                  // Validate data structure
+                  if (results.data && results.data.length > 0 && results.data[0].fund_name) {
+                    console.log(`Successfully loaded from CSV: ${csvPath}`);
+                    setFunds(results.data);
+                    setSource('csv');
+                    csvLoaded = true;
+                    resolve();
+                  } else {
+                    reject(new Error("CSV parsed but empty or invalid structure (missing fund_name). Trying next date."));
+                  }
+                },
+                error: (err: Error) => {
+                  reject(err);
+                }
+              });
+            });
+
+            if (csvLoaded) break; // Exit loop if successful
+          } else {
+            console.log(`CSV not found at ${csvPath} (status: ${response.status})`);
+          }
+        } catch (err) {
+          console.warn(`Could not load or parse ${csvPath}:`, err instanceof Error ? err.message : String(err));
         }
-      } catch (err) {
-        console.warn("Error loading CSV:", err);
       }
 
-      // 2. Fallback to Supabase DB
+      if (csvLoaded) {
+        setLoading(false);
+        return; // We are done, data is from CSV
+      }
+      
+      // --- 2. Fallback to Supabase DB ---
+      console.warn("Could not load a valid CSV after 30 attempts. Falling back to DB.");
       try {
         console.log("Fetching from Supabase DB...");
-        const { data, error } = await supabase
-          .from('funds')
-          .select('*');
-
+        const { data, error } = await supabase.from('funds').select('*');
         if (error) throw error;
 
         if (data && data.length > 0) {
@@ -101,7 +117,7 @@ function App() {
           setFunds(data);
           setSource('db');
         } else {
-          // 3. Fallback to Mock Data
+          // --- 3. Fallback to Mock Data ---
           console.log("No data in DB, using Mock Data");
           setFunds(MOCK_DATA);
           setSource('mock');
@@ -121,13 +137,13 @@ function App() {
 
   const sp500Funds = funds.filter(f => 
     f.category === 'S&P500' || 
-    (!f.category && f.fund_name.toUpperCase().includes('S&P500')) ||
-    (!f.category && f.fund_name.includes('P500'))
+    (f.fund_name && !f.category && f.fund_name.toUpperCase().includes('S&P500')) ||
+    (f.fund_name && !f.category && f.fund_name.includes('P500'))
   );
 
   const nasdaqFunds = funds.filter(f => 
     f.category === 'Nasdaq100' || 
-    (!f.category && f.fund_name.includes('나스닥'))
+    (f.fund_name && !f.category && f.fund_name.includes('나스닥'))
   );
 
   return (
